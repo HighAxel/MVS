@@ -23,15 +23,12 @@ local r15BodyParts = {
     "RightUpperArm", "RightLowerArm", "RightHand", "LeftUpperLeg", "LeftLowerLeg",
     "LeftFoot", "RightUpperLeg", "RightLowerLeg", "RightFoot"
 }
-
--- GUI Setup
 local gui = Instance.new("ScreenGui")
 gui.Name = "CheatMenu"
 gui.ResetOnSpawn = false
 gui.Parent = game:GetService("CoreGui")
 
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 320, 0, 370) -- increased height for slider
 frame.Position = UDim2.new(0.5, -160, 0.4, -185)
 frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 frame.BorderSizePixel = 0
@@ -39,7 +36,18 @@ frame.Active = true
 frame.Draggable = true
 frame.ClipsDescendants = true
 frame.AnchorPoint = Vector2.new(0.5, 0.5)
-frame.BackgroundTransparency = 0
+
+frame.Size = UDim2.new(0, 0, 0, 0)
+frame.BackgroundTransparency = 1
+
+local TweenService = game:GetService("TweenService")
+local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+local goal = {}
+goal.Size = UDim2.new(0, 320, 0, 370)
+goal.BackgroundTransparency = 0
+local tween = TweenService:Create(frame, tweenInfo, goal)
+tween:Play()
+
 
 local corner = Instance.new("UICorner", frame)
 corner.CornerRadius = UDim.new(0, 16)
@@ -65,19 +73,16 @@ title.TextScaled = true
 title.TextStrokeTransparency = 0.8
 
 local checkboxContainer = Instance.new("Frame", frame)
-checkboxContainer.Size = UDim2.new(1, 0, 0, 120) -- shrink for checkbox space
+checkboxContainer.Size = UDim2.new(1, 0, 0, 120) 
 checkboxContainer.Position = UDim2.new(0, 0, 0, 50)
 checkboxContainer.BackgroundTransparency = 1
 checkboxContainer.ClipsDescendants = true
-
 local uiList = Instance.new("UIListLayout", checkboxContainer)
 uiList.Padding = UDim.new(0, 20)
 uiList.SortOrder = Enum.SortOrder.LayoutOrder
 uiList.HorizontalAlignment = Enum.HorizontalAlignment.Left
 uiList.VerticalAlignment = Enum.VerticalAlignment.Top
 uiList.Padding = UDim.new(0, 25)
-
--- Checkbox creation function
 local function createCheckbox(text, initialState, callback)
     local container = Instance.new("Frame")
     container.Size = UDim2.new(0, 280, 0, 36)
@@ -138,12 +143,9 @@ local function createCheckbox(text, initialState, callback)
         toggle = toggle
     }
 end
-
--- Create checkboxes for ESP and Silent Aim
 local espCheckbox = createCheckbox("Enable ESP", false, function(state)
     espEnabled = state
     if not state then
-        -- Remove highlights on disable
         for _, player in ipairs(Players:GetPlayers()) do
             if player.Character then
                 local highlight = player.Character:FindFirstChild("Highlight")
@@ -152,17 +154,13 @@ local espCheckbox = createCheckbox("Enable ESP", false, function(state)
         end
     end
 end)
-
 local silentAimCheckbox = createCheckbox("Enable Silent Aim", false, function(state)
     silentAimEnabled = state
 end)
-
--- Player Speed slider container
 local sliderContainer = Instance.new("Frame", frame)
 sliderContainer.Size = UDim2.new(0, 280, 0, 70)
 sliderContainer.Position = UDim2.new(0, 20, 0, 180)
 sliderContainer.BackgroundTransparency = 1
-
 local speedLabel = Instance.new("TextLabel", sliderContainer)
 speedLabel.Size = UDim2.new(1, 0, 0, 24)
 speedLabel.Position = UDim2.new(0, 0, 0, 0)
@@ -172,7 +170,6 @@ speedLabel.Font = Enum.Font.GothamBold
 speedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 speedLabel.TextSize = 20
 speedLabel.TextXAlignment = Enum.TextXAlignment.Left
-
 local sliderBar = Instance.new("Frame", sliderContainer)
 sliderBar.Size = UDim2.new(1, 0, 0, 20)
 sliderBar.Position = UDim2.new(0, 0, 0, 40)
@@ -182,16 +179,13 @@ sliderBar.ClipsDescendants = true
 sliderBar.Name = "SliderBar"
 local sliderCorner = Instance.new("UICorner", sliderBar)
 sliderCorner.CornerRadius = UDim.new(0, 10)
-
 local sliderFill = Instance.new("Frame", sliderBar)
-sliderFill.Size = UDim2.new((16 - 8) / (100 - 8), 0, 1, 0) -- initial fill for 16 speed
+sliderFill.Size = UDim2.new((16 - 8) / (100 - 8), 0, 1, 0) 
 sliderFill.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
 sliderFill.BorderSizePixel = 0
 sliderFill.Name = "SliderFill"
 local fillCorner = Instance.new("UICorner", sliderFill)
 fillCorner.CornerRadius = UDim.new(0, 10)
-
--- Draggable knob
 local knob = Instance.new("TextButton", sliderBar)
 knob.Size = UDim2.new(0, 28, 0, 28)
 knob.Position = UDim2.new((16 - 8) / (100 - 8), -14, 0.5, -14)
@@ -201,26 +195,18 @@ knob.AutoButtonColor = false
 knob.Text = ""
 local knobCorner = Instance.new("UICorner", knob)
 knobCorner.CornerRadius = UDim.new(0, 14)
-
 local minSpeed, maxSpeed = 8, 100
 local currentSpeed = 16
-
 local function updateSpeed(newSpeed)
     currentSpeed = math.clamp(newSpeed, minSpeed, maxSpeed)
     speedLabel.Text = "Player Speed: " .. math.floor(currentSpeed)
-
-    -- Update slider fill and knob position
     local ratio = (currentSpeed - minSpeed) / (maxSpeed - minSpeed)
     sliderFill.Size = UDim2.new(ratio, 0, 1, 0)
     knob.Position = UDim2.new(ratio, -14, 0.5, -14)
-
-    -- Update walk speed if character exists
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
         LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = currentSpeed
     end
 end
-
--- Dragging logic
 local dragging = false
 local function updateSlider(input)
     local pos = input.Position.X - sliderBar.AbsolutePosition.X
@@ -229,43 +215,33 @@ local function updateSlider(input)
     local speedValue = minSpeed + ratio * (maxSpeed - minSpeed)
     updateSpeed(speedValue)
 end
-
 knob.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = true
     end
 end)
-
 UserInputService.InputChanged:Connect(function(input)
     if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
         updateSlider(input)
     end
 end)
-
 UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = false
     end
 end)
-
 sliderBar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         updateSlider(input)
         dragging = true
     end
 end)
-
 sliderBar.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = false
     end
 end)
-
--- Initialize speed to default 16
 updateSpeed(16)
-
--- ESP Functions
-
 local function isVisible(targetPos)
     local origin = Camera.CFrame.Position
     local direction = (targetPos - origin)
@@ -287,7 +263,6 @@ local function isVisible(targetPos)
         return true
     end
 end
-
 local function updateHighlights()
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
@@ -305,9 +280,9 @@ local function updateHighlights()
             end
 
             if visible then
-                highlight.FillColor = Color3.fromRGB(0, 255, 0) -- Green
+                highlight.FillColor = Color3.fromRGB(0, 255, 0) 
             else
-                highlight.FillColor = Color3.fromRGB(255, 0, 0) -- Red
+                highlight.FillColor = Color3.fromRGB(255, 0, 0) 
             end
         else
             if player.Character then
@@ -317,9 +292,6 @@ local function updateHighlights()
         end
     end
 end
-
--- Silent Aim Helper
-
 local function isRagdoll(model)
     return not model:FindFirstChild("Animate")
 end
@@ -330,7 +302,6 @@ local function isOnScreen(character)
     local _, onScreen = Camera:WorldToViewportPoint(head.Position)
     return onScreen
 end
-
 local function getClosestPlayerToMouse()
     local closest = nil
     local shortest = math.huge
@@ -350,8 +321,6 @@ local function getClosestPlayerToMouse()
 
     return closest
 end
-
--- Update ESP highlights regularly
 task.spawn(function()
     while true do
         task.wait(0.3)
@@ -360,8 +329,6 @@ task.spawn(function()
         end
     end
 end)
-
--- Silent aim mouse fire
 Mouse.Button1Down:Connect(function()
     if not silentAimEnabled then return end
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Tool") then
@@ -374,8 +341,6 @@ Mouse.Button1Down:Connect(function()
         end
     end
 end)
-
--- Toggle GUI visibility with RightControl key
 local guiVisible = true
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
